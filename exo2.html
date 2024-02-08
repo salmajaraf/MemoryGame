@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="Style.css">
+    <title>Memory</title>
+</head>
+<body>
+    <h1>Jeu de memory</h1>
+    <div id="timer">Temps restant : 60 s</div>
+    <div class="jeu">
+        <div class="case" ><img id="img1" src="photos/1.jpg"></div>
+        <div class="case" ><img id="img2" src="photos/1.jpg"></div>
+        <div class="case" ><img id="img3" src="photos/2.jpg"></div>
+        <div class="case" ><img id="img4" src="photos/2.jpg"></div>
+        <hr />
+        <div class="case" ><img id="img5" src="photos/3.jpg"></div>
+        <div class="case" ><img id="img6" src="photos/3.jpg"></div>
+        <div class="case" ><img id="img7" src="photos/4.jpg"></div>
+        <div class="case" ><img id="img8" src="photos/4.jpg"></div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+            // Initialisation des variables
+            const images = document.querySelectorAll('.case');
+            let Cartestournees = [];     // Cartes retournées
+            let lockBoard = false;     // Contrôle si le plateau est verrouillé pendant l'animation
+            let score = 0;             // Score du joueur
+            let timer = 60;            // Temps en secondes
+
+            // Algorithme de mélange
+            function Melanger(images) {
+                const imageElements = Array.from(images);
+                for (let i = imageElements.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    imageElements[i].parentNode.appendChild(imageElements[j]);
+                }
+            }
+
+            
+            Melanger(images);
+
+            function tournerCarte() {
+                if (lockBoard) return;  // Ne fait rien si le plateau est verrouillé
+
+                if (Cartestournees.length < 2 && !Cartestournees.includes(this)) {
+                    this.querySelector('img').style.display = 'block'; 
+                    Cartestournees.push(this); // Ajoute la carte à l'array des cartes retournées
+
+                    if (Cartestournees.length === 2) {
+                        lockBoard = true; // Verrouille le plateau pour éviter de retourner une troisième carte pendant la vérification
+                        setTimeout(checkForMatch, 1000);  
+                    }
+                }     
+            }
+
+            function checkForMatch() {
+                const [firstCard, secondCard] = Cartestournees; // Contient les balises img tournées
+
+                if (firstCard.querySelector('img').src === secondCard.querySelector('img').src) {
+                    score += 2; // Incrémente le score
+                    lockBoard = false;
+                    if (score === images.length) {
+                        alert('Bravo, vous avez gagné !'); // Affiche une alerte si le joueur a gagné
+                    }
+                } else {
+                    lockBoard = true; // Verrouille le plateau pendant une seconde
+                    setTimeout(() => {
+                        firstCard.querySelector('img').style.display = 'none';
+                        secondCard.querySelector('img').style.display = 'none';
+                        lockBoard = false; // Déverrouille le plateau
+                    }, 900);
+                }
+
+                Cartestournees = []; // Réinitialise l'array des cartes retournées
+            }
+
+            function startTimer() {
+                const timerElement = document.getElementById('timer');
+                const interval = setInterval(() => {
+                    timer--;
+                    timerElement.textContent = `Temps restant : ${timer} s`; // Met à jour l'affichage du temps restant
+
+                    if (timer === 0) {
+                        clearInterval(interval); // Arrête le compte à rebours lorsque le temps est écoulé
+                        alert('Temps écoulé !'); // Affiche une alerte
+                    }
+                }, 1000);
+            }
+
+            Melanger(images);
+            images.forEach(img => img.addEventListener('click', tournerCarte));
+            startTimer();
+        });
+    </script>  
+</body>
+</html>
